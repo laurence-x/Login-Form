@@ -2,7 +2,13 @@
 
 require $_SERVER['DOCUMENT_ROOT'] . '/php/app.php';
 
-if (isset($_POST['email'])) {
+if (
+    array_key_exists('email', $_POST)
+    && isset($_POST['email'])
+    && !empty($_POST['email'])
+    && $_POST['email'] !== null
+    && $_POST['email'] !== ''
+) {
     $em = clean($_POST['email'], "lo");
     $em = filter_var($em, FILTER_SANITIZE_EMAIL);
 
@@ -20,8 +26,11 @@ if (isset($_POST['email'])) {
             $sv,
             $un,
             $pw,
-            $db, $sel = 'email',
-            $tn, $whr = 'email', $val = $ems
+            $db,
+            $sel = 'email',
+            $tn,
+            $whr = 'email',
+            $val = $ems
         );
 
         if (!$uex) {
@@ -57,14 +66,15 @@ if (isset($_POST['email'])) {
             $conn = mysqli_connect($sv, $un, $pw, $db);
             if (mysqli_connect_errno()) {
                 $ms = 'ERROR: No conn to db "'
-                . $db . '"-' . mysqli_connect_error();
+                    . $db . '"-' . mysqli_connect_error();
                 goto end;
             } else {
                 /* get user-name, password, unit & trial from db
                 where entry is the encoded email from post */
                 $res = mysqli_query(
-                    $conn, "SELECT user,password,unix,trial FROM "
-                    . $tn . " WHERE email='" . $ems . "'"
+                    $conn,
+                    "SELECT user,password,unix,trial FROM "
+                        . $tn . " WHERE email='" . $ems . "'"
                 );
                 $row = mysqli_fetch_array($res, MYSQLI_ASSOC);
                 $trial = $row['trial'];
@@ -94,20 +104,23 @@ if (isset($_POST['email'])) {
 
                 // enter email hashed in db
                 mysqli_query(
-                    $conn, "UPDATE " . $tn . " SET ulog='"
-                    . $emh . "' WHERE email ='" . $ems . "'"
+                    $conn,
+                    "UPDATE " . $tn . " SET ulog='"
+                        . $emh . "' WHERE email ='" . $ems . "'"
                 );
 
                 // reset unix time on log in
                 mysqli_query(
-                    $conn, "UPDATE " . $tn . " SET unix='"
-                    . $nt . "' WHERE email ='" . $ems . "'"
+                    $conn,
+                    "UPDATE " . $tn . " SET unix='"
+                        . $nt . "' WHERE email ='" . $ems . "'"
                 );
 
                 // reset trial on new log in
                 mysqli_query(
-                    $conn, "UPDATE " . $tn
-                    . " SET trial='0' WHERE email ='" . $ems . "'"
+                    $conn,
+                    "UPDATE " . $tn
+                        . " SET trial='0' WHERE email ='" . $ems . "'"
                 );
 
                 // delete trial cookie
@@ -137,15 +150,17 @@ if (isset($_POST['email'])) {
                 if ($trial > 4 && ($nt - 86400) > $unix) {
                     // reset trial in db to 1 after 24h
                     mysqli_query(
-                        $conn, "UPDATE " . $tn
-                        . " SET trial='1' WHERE email ='" . $ems . "'"
+                        $conn,
+                        "UPDATE " . $tn
+                            . " SET trial='1' WHERE email ='" . $ems . "'"
                     );
                 }
 
                 // update unix col entry on every trial
                 mysqli_query(
-                    $conn, "UPDATE " . $tn . " SET unix='"
-                    . $nt . "' WHERE email ='" . $ems . "'"
+                    $conn,
+                    "UPDATE " . $tn . " SET unix='"
+                        . $nt . "' WHERE email ='" . $ems . "'"
                 );
 
                 $jres = "wp";
